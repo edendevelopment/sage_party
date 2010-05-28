@@ -91,7 +91,7 @@ describe SageParty::Transaction do
     end 
 
     def check_response(*args)
-      @transaction.response.should == @transaction.format_response(*args)
+      @transaction.response.should == @transaction.send(:format_response, *args)
     end
 
     context 'transaction not found' do

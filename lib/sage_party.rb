@@ -26,37 +26,40 @@ module SageParty
     property :id, :vendor_name
 
 
-    def self.register_tx(data)
-      response = raw_register(data)
-      hash = {}
-      response.split("\r\n").each do |line|
-        line = line.split("=", 2)
-        hash[line.first] = line.last
+    class << self
+      def register_tx(data)
+        response = raw_register(data)
+        hash = {}
+        response.split("\r\n").each do |line|
+          line = line.split("=", 2)
+          hash[line.first] = line.last
+        end
+        self.new(hash.merge({:id => data[:VendorTxCode], :vendor_name => data[:Vendor]}))
       end
-      self.new(hash.merge({:id => data[:VendorTxCode], :vendor_name => data[:Vendor]}))
+
+      def find(vendor_id, sage_id)
+        transaction = get(vendor_id)
+        return missing_transaction if transaction.nil? || transaction.vps_tx_id != sage_id
+        transaction
+      end
+
+      def get(vendor_id)
+        raise 'self.get method get needs to be defined'
+      end
+
+      private
+      def missing_transaction
+        self.new(:not_found => true)
+      end
     end
 
-    def self.find(vendor_id, sage_id)
-      transaction = get(vendor_id)
-      return missing_transaction if transaction.nil? || transaction.vps_tx_id != sage_id
-      transaction
-    end
-
-    def self.get(vendor_id)
-      raise 'self.get method get needs to be defined'
-    end
-
-    def self.missing_transaction
-      self.new(:not_found => true)
-    end
-
-    def initialize(params)
-      populate_properties(params)
-      @not_found = params[:not_found]
-    end
-
-    def notification_url
-      raise 'notification_url method needs to be defined'
+    def response
+      return format_response(:invalid, 'Transaction not found') unless exists?
+      return format_response(:invalid, 'Security check failed') unless signature_ok?
+      return format_response(:error, 'Sage Pay reported an error') if status == 'ERROR'
+      return format_response(:invalid, 'Unexpected status') if %w{AUTHENTICATED REGISTERED}.include?(status)
+      return format_response(:invalid, "Invalid status: #{status}") unless %w{OK NOTAUTHED ABORT REJECTED}.include?(status)
+      format_response(:ok)
     end
 
     def ==(other)
@@ -77,17 +80,19 @@ module SageParty
       generate_md5 == vps_signature
     end
 
-    def generate_md5
-      Digest::MD5.hexdigest("#{vps_tx_id}#{vendor_tx_code}#{status}#{tx_auth_no}#{vendor_name}#{avscv2}#{security_key}#{address_result}#{post_code_result}#{cv2_result}#{gift_aid}#{three_d_secure_status}#{cavv}#{address_status}#{payer_status}#{card_type}#{last4_digits}").upcase
+    protected
+    def initialize(params)
+      populate_properties(params)
+      @not_found = params[:not_found]
     end
 
-    def response
-      return format_response(:invalid, 'Transaction not found') unless exists?
-      return format_response(:invalid, 'Security check failed') unless signature_ok?
-      return format_response(:error, 'Sage Pay reported an error') if status == 'ERROR'
-      return format_response(:invalid, 'Unexpected status') if %w{AUTHENTICATED REGISTERED}.include?(status)
-      return format_response(:invalid, "Invalid status: #{status}") unless %w{OK NOTAUTHED ABORT REJECTED}.include?(status)
-      format_response(:ok)
+    def notification_url
+      raise 'notification_url method needs to be defined'
+    end
+
+    private
+    def generate_md5
+      Digest::MD5.hexdigest("#{vps_tx_id}#{vendor_tx_code}#{status}#{tx_auth_no}#{vendor_name}#{avscv2}#{security_key}#{address_result}#{post_code_result}#{cv2_result}#{gift_aid}#{three_d_secure_status}#{cavv}#{address_status}#{payer_status}#{card_type}#{last4_digits}").upcase
     end
 
     def format_response(status, details=nil)
