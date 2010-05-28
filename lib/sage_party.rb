@@ -2,8 +2,6 @@ require 'digest'
 require 'active_support'
 require 'party_resource'
 
-PartyResource::Connector.add(:sage_party, {})
-
 module SageParty
   class Transaction
     include PartyResource
@@ -12,9 +10,8 @@ module SageParty
     URLS = {:simulator => 'https://test.sagepay.com/simulator/VSPServerGateway.asp?Service=VendorRegisterTx',
             :test => 'https://test.sagepay.com/gateway/service/vspserver-register.vsp',
             :live => 'https://live.sagepay.com/gateway/service/vspserver-register.vsp'}
-    ::SAGE_PAY_SERVER = :simulator unless Object.const_defined?('SAGE_PAY_SERVER')
 
-    connect :raw_register, :post => URLS[::SAGE_PAY_SERVER.to_sym], :as => :raw
+    connect :raw_register, :post => '', :as => :raw
 
     %w{VPSProtocol StatusDetail VPSTxId SecurityKey NextURL
       VPSTxId VendorTxCode Status TxAuthNo VendorName AVSCV2 SecurityKey
@@ -27,6 +24,12 @@ module SageParty
 
 
     class << self
+      # Define which Sage server to use
+      # @param [Symbol] server One of :live, :test, or :simulator
+      def sage_pay_server(server)
+        PartyResource::Connector.add(:sage_party, {:base_uri => URLS[server.to_sym]})
+      end
+
       # Register a new transaction with SagePay
       # @return [Transaction]
       def register_tx(data)
