@@ -13,7 +13,7 @@ Gem::Specification.new do |s|
   s.description = %q{sage_party is a simple interface to SagePay's Server service built on top of party_resource}
   s.email = %q{dev+sage_party@edendevelopment.co.uk}
   s.files = [
-    "lib/sage_transaction.rb"
+    "lib/sage_party.rb"
   ]
   s.homepage = %q{http://github.com/edendevelopment/sage_party.git}
   s.rdoc_options = ["--charset=UTF-8"]
@@ -30,20 +30,20 @@ Gem::Specification.new do |s|
     s.specification_version = 3
 
     if Gem::Version.new(Gem::RubyGemsVersion) >= Gem::Version.new('1.2.0') then
-      s.add_runtime_dependency(%q<httparty>, [">= 0.5.2"])
+      s.add_runtime_dependency(%q<party_resource>, [">= 0.0.2"])
       s.add_runtime_dependency(%q<activesupport>, [">= 2.3.5"])
       s.add_development_dependency(%q<rspec>, [">= 1.2.9"])
       s.add_development_dependency(%q<yard>, [">= 0"])
       s.add_development_dependency(%q<webmock>, [">= 0"])
     else
-      s.add_dependency(%q<httparty>, [">= 0.5.2"])
+      s.add_dependency(%q<party_resource>, [">= 0.0.2"])
       s.add_dependency(%q<activesupport>, [">= 2.3.5"])
       s.add_dependency(%q<rspec>, [">= 1.2.9"])
       s.add_dependency(%q<yard>, [">= 0"])
       s.add_dependency(%q<webmock>, [">= 0"])
     end
   else
-    s.add_dependency(%q<httparty>, [">= 0.5.2"])
+    s.add_dependency(%q<party_resource>, [">= 0.0.2"])
     s.add_dependency(%q<activesupport>, [">= 2.3.5"])
     s.add_dependency(%q<rspec>, [">= 1.2.9"])
     s.add_dependency(%q<yard>, [">= 0"])

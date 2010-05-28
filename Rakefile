@@ -9,7 +9,7 @@ begin
     gem.email = "dev+sage_party@edendevelopment.co.uk"
     gem.homepage = "http://github.com/edendevelopment/sage_party.git"
     gem.authors = ["Tristan Harris", "Steve Tooke"]
-    gem.add_runtime_dependency "httparty", ">= 0.5.2"
+    gem.add_runtime_dependency "party_resource", ">= 0.0.2"
     gem.add_runtime_dependency "activesupport", ">= 2.3.5"
     gem.add_development_dependency "rspec", ">= 1.2.9"
     gem.add_development_dependency "yard", ">= 0"
