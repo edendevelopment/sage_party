@@ -5,7 +5,7 @@ begin
   Jeweler::Tasks.new do |gem|
     gem.name = "sage_party"
     gem.summary = %Q{Simple interface to the SagePay Server service.}
-    gem.description = %Q{sage_party is a simple interface to SayPays Server service built on top of party_resource}
+    gem.description = %Q{sage_party is a simple interface to SagePay's Server service built on top of party_resource}
     gem.email = "dev+sage_party@edendevelopment.co.uk"
     gem.homepage = "http://github.com/edendevelopment/sage_party.git"
     gem.authors = ["Tristan Harris", "Steve Tooke"]
@@ -23,11 +23,6 @@ rescue LoadError
 end
 
 require 'spec/rake/spectask'
-Spec::Rake::SpecTask.new(:spec) do |spec|
-  spec.libs << 'lib' << 'spec'
-  spec.spec_files = FileList['spec/**/*_spec.rb']
-end
-
 Spec::Rake::SpecTask.new(:spec) do |spec|
   spec.libs << 'lib' << 'spec'
   spec.spec_files = FileList['spec/**/*_spec.rb']
