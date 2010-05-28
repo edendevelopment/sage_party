@@ -11,10 +11,10 @@ module SageParty
     party_connector :sage_party
     URLS = {:simulator => 'https://test.sagepay.com/simulator/VSPServerGateway.asp?Service=VendorRegisterTx',
             :test => 'https://test.sagepay.com/gateway/service/vspserver-register.vsp',
-            :live => 'https://live.sagepay.com/gateway/service/vspserver-register.vsp'}.with_indifferent_access
+            :live => 'https://live.sagepay.com/gateway/service/vspserver-register.vsp'}
     ::SAGE_PAY_SERVER = :simulator unless Object.const_defined?('SAGE_PAY_SERVER')
 
-    connect :raw_register, :post => URLS[::SAGE_PAY_SERVER], :as => :raw
+    connect :raw_register, :post => URLS[::SAGE_PAY_SERVER.to_sym], :as => :raw
 
     %w{VPSProtocol StatusDetail VPSTxId SecurityKey NextURL
       VPSTxId VendorTxCode Status TxAuthNo VendorName AVSCV2 SecurityKey
@@ -43,6 +43,7 @@ module SageParty
         transaction
       end
 
+      protected
       def get(vendor_id)
         raise 'self.get method get needs to be defined'
       end
@@ -74,6 +75,7 @@ module SageParty
       data = data.with_indifferent_access
       data.delete(:SecurityKey)
       populate_properties(data)
+      self
     end
 
     def signature_ok?
