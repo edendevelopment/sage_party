@@ -27,6 +27,8 @@ module SageParty
 
 
     class << self
+      # Register a new transaction with SagePay
+      # @return [Transaction]
       def register_tx(data)
         response = raw_register(data)
         hash = {}
@@ -37,6 +39,8 @@ module SageParty
         self.new(hash.merge({:id => data[:VendorTxCode], :vendor_name => data[:Vendor]}))
       end
 
+      # Find a stored transaction
+      # @return [Transaction]
       def find(vendor_id, sage_id)
         transaction = get(vendor_id)
         return missing_transaction if transaction.nil? || transaction.vps_tx_id != sage_id
@@ -54,6 +58,8 @@ module SageParty
       end
     end
 
+    # Return HTTP response to return to SagePay server
+    # @return [String]
     def response
       return format_response(:invalid, 'Transaction not found') unless exists?
       return format_response(:invalid, 'Security check failed') unless signature_ok?
@@ -63,14 +69,19 @@ module SageParty
       format_response(:ok)
     end
 
+    # Test transaction equality
+    # @return [Boolean]
     def ==(other)
       properties_equal?(other) && self.exists? == other.exists?
     end
 
+    # Detrmine if this transaction exists
     def exists?
       !@not_found
     end
 
+    # Merge in transaction stage two data
+    # @return [Transaction] self
     def merge!(data)
       data = data.with_indifferent_access
       data.delete(:SecurityKey)
@@ -78,6 +89,7 @@ module SageParty
       self
     end
 
+    # Check if transaction data matches its signature
     def signature_ok?
       generate_md5 == vps_signature
     end
