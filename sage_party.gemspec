@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{sage_party}
-  s.version = "0.0.1"
+  s.version = "0.0.2"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Tristan Harris", "Steve Tooke"]
-  s.date = %q{2010-05-28}
+  s.date = %q{2010-06-01}
   s.description = %q{sage_party is a simple interface to SagePay's Server service built on top of party_resource}
   s.email = %q{dev+sage_party@edendevelopment.co.uk}
   s.files = [
