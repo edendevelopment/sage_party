@@ -3,15 +3,26 @@ require 'active_support'
 require 'party_resource'
 
 module SageParty
+
+  URLS = {:simulator => 'https://test.sagepay.com/simulator',
+          :test => 'https://test.sagepay.com/gateway/service',
+          :live => 'https://live.sagepay.com/gateway/service'}
+
+  ACTIONS = {
+    :register => {
+      :live => '/vspserver-register.vsp',
+      :test => '/vspserver-register.vsp',
+      :simulator => '/VSPServerGateway.asp?Service=VendorRegisterTx' },
+    :authorise => {
+      :live => '/vspserver-authorise.vsp',
+      :test => '/vspserver-authorise.vsp',
+      :simulator => '/VSPServerGateway.asp?Service=VendorAuthoriseTx' }
+  }
+
   class Transaction
     include PartyResource
 
     party_connector :sage_party
-    URLS = {:simulator => 'https://test.sagepay.com/simulator/VSPServerGateway.asp?Service=VendorRegisterTx',
-            :test => 'https://test.sagepay.com/gateway/service/vspserver-register.vsp',
-            :live => 'https://live.sagepay.com/gateway/service/vspserver-register.vsp'}
-
-    connect :raw_register, :post => '', :as => :raw
 
     %w{VPSProtocol StatusDetail VPSTxId SecurityKey NextURL
       VPSTxId VendorTxCode Status TxAuthNo VendorName AVSCV2 SecurityKey
@@ -27,19 +38,19 @@ module SageParty
       # Define which Sage server to use
       # @param [Symbol] server One of :live, :test, or :simulator
       def sage_pay_server(server)
-        PartyResource::Connector.add(:sage_party, {:base_uri => URLS[server.to_sym]})
+        PartyResource::Connector.add(:sage_party, {:base_uri => SageParty::URLS[server.to_sym]})
+        connect :raw_register, :post => action_path(:register, server), :as => :raw
+        connect :raw_authorise, :post => action_path(:authorise, server), :as => :raw
       end
 
       # Register a new transaction with SagePay
       # @return [Transaction]
       def register_tx(data)
-        response = raw_register(data)
-        hash = {}
-        response.split("\r\n").each do |line|
-          line = line.split("=", 2)
-          hash[line.first] = line.last
-        end
-        self.new(hash.merge({:id => data[:VendorTxCode], :vendor_name => data[:Vendor]}))
+        transaction(:raw_register, data)
+      end
+
+      def authorise_tx(data)
+        transaction(:raw_authorise, data)
       end
 
       # Find a stored transaction
@@ -58,6 +69,25 @@ module SageParty
       private
       def missing_transaction
         self.new(:not_found => true)
+      end
+
+      def action_path(action, server)
+        SageParty::ACTIONS[action][server.to_sym]
+      end
+
+      def parse_response(response, data)
+        hash = {}
+        response.split("\r\n").each do |line|
+          line = line.split("=", 2)
+          hash[line.first] = line.last
+        end
+        return hash
+      end
+
+      def transaction(action, data)
+        response = send(action, data)
+        parsed_response = parse_response(response, data)
+        self.new(parsed_response.merge({:id => data[:VendorTxCode], :vendor_name => data[:Vendor]}))
       end
     end
 
